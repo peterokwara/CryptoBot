@@ -1,5 +1,5 @@
 import time
-# import requests
+import requests
 import hashlib
 import hmac
 
@@ -19,11 +19,23 @@ def main():
         end = time.time()
 
         # Sleep the thread if needed
-        if end - start <TICK_INTERVAL:
+        if end - start < TICK_INTERVAL:
             time.sleep(TICK_INTERVAL - (end - start))
 
 def tick():
-    pass
+    print('Running routine')
+    market_summaries = simple_request('https://bittrex.com/api/v1.1/public/getmarketsummaries')
+    for summary in market_summaries['result']:
+        market = summary['MarketName']
+        day_close = summary['PrevDay']
+        last = summary['Last']
+
+        percent_chg = ((last / day_close) - 1) * 100
+        print(market + ' changed ' + str(percent_chg))
+
+def simple_request(url):
+    r = requests.get(url)
+    return r.json()
 
 def format_float(f):
     return "%.8" % f
