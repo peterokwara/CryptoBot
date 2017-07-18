@@ -33,12 +33,37 @@ def tick():
         percent_chg = ((last / day_close) - 1) * 100
         print(market + ' changed ' + str(percent_chg))
 
+        if 40 < percent_chg < 60:
+            print('Purchasing 5 units of' + market + 'for' + str(format_float(last)))
+            res = buy_limit(market, 5, last)
+            print(res)
+
+        if percent_chg < -20:
+            #Ship is sinking,  get out
+            sell_limit(market, 5, last)
+
+def buy_limit(market, quantity, rate):
+    url = 'https://bittrex.com/api/v1.1/market/buylimit?apikey=' + API_KEY + '&market=' + market + '&quantity=' + str(quantity) + '&rate=' + format_float(rate)
+    return signed_request(url)
+
+def sell_limit(market, quantity, rate):
+    url = 'https://bittrex.com/api/v1.1/market/selllimit?apikey=' + API_KEY + '&market=' + market + '&quantity=' + str(quantity) + '&rate=' + format_float(rate)
+    return signed_request(url)
+
+def signed_request(url):
+    now = time.time()
+    url += '&nonce=' + str(now)
+    signed = hmac.new(API_SECRET_KEY, url.encode('utf-8'), hashlib.sha512).hexdigest()
+    headers = {'apisign': signed}
+    r = requests.get(url, headers=headers)
+    return r.json()
+
 def simple_request(url):
     r = requests.get(url)
     return r.json()
 
 def format_float(f):
-    return "%.8" % f
+    return "%.8f" % f
 
 if __name__ == "__main__":
     main()
